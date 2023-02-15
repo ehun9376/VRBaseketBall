@@ -41,21 +41,23 @@
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="Button"/>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="EPC-IJ-IRp">
-                                <rect key="frame" x="169.5" y="727" width="75" height="35"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Button"/>
-                            </button>
+                            <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" translatesAutoresizingMaskIntoConstraints="NO" id="nVC-Nu-cHm">
+                                <rect key="frame" x="0.0" y="117" width="414" height="50"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="50" id="2Sl-mt-0IZ"/>
+                                </constraints>
+                            </stackView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="fQZ-KI-GVf"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="Zby-dI-yop" firstAttribute="top" secondItem="fQZ-KI-GVf" secondAttribute="top" constant="20" id="0se-cS-8Gn"/>
-                            <constraint firstItem="EPC-IJ-IRp" firstAttribute="centerX" secondItem="U0K-SW-4ec" secondAttribute="centerX" id="FWK-pT-gDL"/>
+                            <constraint firstItem="nVC-Nu-cHm" firstAttribute="leading" secondItem="fQZ-KI-GVf" secondAttribute="leading" id="5nv-27-Qh4"/>
                             <constraint firstItem="ZhQ-jw-kj1" firstAttribute="centerY" secondItem="U0K-SW-4ec" secondAttribute="centerY" id="GNY-w8-z5u"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="leading" secondItem="fQZ-KI-GVf" secondAttribute="leading" id="GsS-dJ-CKf"/>
+                            <constraint firstItem="fQZ-KI-GVf" firstAttribute="trailing" secondItem="nVC-Nu-cHm" secondAttribute="trailing" id="TYt-lP-V18"/>
+                            <constraint firstItem="nVC-Nu-cHm" firstAttribute="top" secondItem="Zby-dI-yop" secondAttribute="bottom" constant="28" id="U8x-6Z-fwV"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="bottom" secondItem="fQZ-KI-GVf" secondAttribute="bottom" id="VpT-BR-CcM"/>
-                            <constraint firstItem="fQZ-KI-GVf" firstAttribute="bottom" secondItem="EPC-IJ-IRp" secondAttribute="bottom" constant="100" id="XYZ-Dw-1kz"/>
                             <constraint firstItem="BrB-h1-WRS" firstAttribute="trailing" secondItem="fQZ-KI-GVf" secondAttribute="trailing" id="XyZ-9z-H8e"/>
                             <constraint firstItem="YGs-pa-xlT" firstAttribute="top" secondItem="fQZ-KI-GVf" secondAttribute="top" constant="20" id="YVa-OU-TYG"/>
                             <constraint firstItem="ZhQ-jw-kj1" firstAttribute="centerX" secondItem="U0K-SW-4ec" secondAttribute="centerX" id="bAd-eX-1nP"/>
@@ -65,7 +67,7 @@
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="fireButton" destination="EPC-IJ-IRp" id="K8G-HF-B9Y"/>
+                        <outlet property="countStackVIew" destination="nVC-Nu-cHm" id="03j-rJ-ZPF"/>
                         <outlet property="lifeLabel" destination="Zby-dI-yop" id="XyH-ut-wFw"/>
                         <outlet property="pointLabel" destination="YGs-pa-xlT" id="axd-J6-6D5"/>
                         <outlet property="resetButton" destination="ZhQ-jw-kj1" id="Qm2-jO-wyb"/>

@@ -9,7 +9,7 @@ import UIKit
 import SceneKit
 import ARKit
 
-class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDelegate {
+class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDelegate, ARSessionDelegate {
     
     // MARK: - Outlets
     @IBOutlet var sceneView: ARSCNView!
@@ -20,12 +20,39 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
     
     @IBOutlet weak var resetButton: UIButton!
     
-    @IBOutlet weak var fireButton: UIButton!
+    @IBOutlet weak var countStackVIew: UIStackView!
+    
+    var detectImageRequest: VNDetectBarcodesRequest?
+    
+    var imageRequestHandler: VNImageRequestHandler?
+
+    let arSession = ARSession()
+    
+    var ballCount: Int = 0 {
+        didSet {
+            DispatchQueue.main.async {
+                
+                for view in self.countStackVIew.arrangedSubviews {
+                    view.removeFromSuperview()
+                }
+                
+                for _ in 0..<self.ballCount {
+                    
+                    if let image = UIImage(named: "ball") {
+                        
+                        let imageView = UIImageView(image: image)
+                        self.countStackVIew.addArrangedSubview(imageView)
+                    }
+                }
+            }
+        }
+    }
     
     var gameing: Bool = false {
         didSet {
             self.setupTimer()
             self.setupButton()
+            self.setupImageRequest()
         }
     }
     
@@ -34,20 +61,17 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
             DispatchQueue.main.async {
                 self.pointLabel.text = "POINT:\(self.point)"
             }
-            
         }
     }
     
     var life: Int = 0 {
         didSet {
-            
             if life <= 0 {
                 self.gameOver()
             }
             DispatchQueue.main.async {
                 self.lifeLabel.text = "LIFE:\(self.life)"
             }
-            
         }
     }
     
@@ -56,7 +80,6 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
     
     var timer: Timer?
     
-    var fireTime: Timer?
     
     func gameOver() {
         for node in self.sceneView.scene.rootNode.childNodes {
@@ -76,40 +99,45 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         self.sceneView.showsStatistics = true
         
         self.sceneView.scene.physicsWorld.contactDelegate = self
-                
+        
+        self.sceneView.session.delegate = self
+        
+        self.setupDefaultImage()
         self.setupButton()
-        self.setupFireButton()
+        self.setupImageRequest()
     }
     
+    func setupDefaultImage() {
+        guard let image = UIImage(named: "default") else {
+            fatalError("Failed to load reference image.")
+        }
+        if let cgimage = image.cgImage {
+            let referenceImage = ARReferenceImage(cgimage, orientation: .up, physicalWidth: 0.2)
+            referenceImage.name = "6595"
+            self.configuration.detectionImages = Set([referenceImage])
+        }
+
+    }
+    
+    
+    @objc func resetCarema() {
+        self.reset()
+        self.sceneView.session.run(self.configuration,options: [.removeExistingAnchors, .resetTracking])
+    }
     
     @objc func reset() {
         self.life = 3
         self.point = 0
+        self.ballCount = 30
         self.gameing.toggle()
     }
-    
-    func setupFireButton() {
-        fireButton.addTarget(self, action: #selector(fire), for: .touchDown)
-        fireButton.addTarget(self, action: #selector(holdFire), for: .touchUpInside)
-    }
-    @objc func holdFire() {
-        self.fireTime?.invalidate()
-    }
-    
-    @objc func fire() {
-        self.fireTime = .scheduledTimer(withTimeInterval: 0.2, repeats: true, block: { _ in
-            guard let ballNode = self.getBall() else { return }
-            
-            // Add basketball to the camera position
-            self.sceneView.scene.rootNode.addChildNode(ballNode)
-        })
-    }
+
     
     func setupButton() {
         DispatchQueue.main.async {
             self.resetButton.isHidden = self.gameing
-            self.resetButton.setTitle("GAMEOVER\n Your Point: \(self.point) \n Restart", for: .normal)
-            self.resetButton.addTarget(self, action: #selector(self.reset), for: .touchUpInside)
+            self.resetButton.setTitle(" Your Point: \(self.point) \n朝地板瞄準補充子彈，點擊我可以重新定位並開始", for: .normal)
+            self.resetButton.addTarget(self, action: #selector(self.resetCarema), for: .touchUpInside)
         }
     }
     
@@ -182,7 +210,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
     
     func getBox() -> SCNNode? {
         // 每當添加新的錨點時，我們創建一個新的 boxNode 並將其添加到場景中
-        let box = SCNBox(width: 1, height: 1, length: 1, chamferRadius: 0)
+        let box = SCNBox(width: 1, height: 1, length: 1, chamferRadius: 0.5)
         box.firstMaterial?.diffuse.contents = UIImage(named: "head\(Int.random(in: 1...11))")
         let boxNode = SCNNode(geometry: box)
 
@@ -275,12 +303,57 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
         updatePlaneNode(node, for: planeAnchor)
     }
     
+    func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        
+
+//        if let detectImageRequest = detectImageRequest {
+//            self.imageRequestHandler = .init(cvPixelBuffer: frame.capturedImage)
+//
+//            do {
+//                try imageRequestHandler?.perform([detectImageRequest])
+//            } catch {
+//                print("Error detecting image: \(error.localizedDescription)")
+//            }
+//        }
+        let cameraDirection = frame.camera.transform.columns.2
+
+        let worldDownVector = simd_float4(0, -1, 0, 0)
+        let dotProduct = simd_dot(cameraDirection, worldDownVector)
+
+        if dotProduct < -0.9 {
+            self.ballCount = 30
+        } else {
+            // 鏡頭未朝向場景的底部
+        }
+    }
+
+    
+    func setupImageRequest() {
+        
+        if !(self.ballCount >= 30) {
+            self.detectImageRequest = .init(completionHandler: { request, error in
+                if let results = request.results as? [VNBarcodeObservation]{
+                    if let _ = results.first(where: { $0.payloadStringValue == self.configuration.detectionImages.first?.name }) {
+                        self.ballCount = 30
+                    }
+                }
+
+            })
+        } else {
+            self.detectImageRequest = nil
+        }
+    }
+    
+    
+    
     // MARK: - Actions
     @IBAction func userTapped(_ sender: UITapGestureRecognizer) {
+        guard self.ballCount > 0 else { return }
         guard self.gameing else { return }
         guard let ballNode = getBall() else { return }
         
         // Add basketball to the camera position
+        self.ballCount -= 1
         sceneView.scene.rootNode.addChildNode(ballNode)
  
     }
