@@ -183,7 +183,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, SCNPhysicsContactDele
     func getBox() -> SCNNode? {
         // 每當添加新的錨點時，我們創建一個新的 boxNode 並將其添加到場景中
         let box = SCNBox(width: 1, height: 1, length: 1, chamferRadius: 0)
-        box.firstMaterial?.diffuse.contents = UIImage(named: "head")
+        box.firstMaterial?.diffuse.contents = UIImage(named: "head\(Int.random(in: 1...11))")
         let boxNode = SCNNode(geometry: box)
 
         
